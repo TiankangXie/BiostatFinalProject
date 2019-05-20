@@ -128,8 +128,6 @@ NIS = NIS[NIS$FEMALE==1,]
 ```{r}
 
 list.vals = c("Z370","Z3759", "Z371", "Z3760",  "Z372", "Z3761" , "Z373" , "Z3762" , "Z374" , "Z3763" , "Z3764" , "Z3751" , "Z3769" , "Z3752" , "Z377" , "Z3753" , "Z379", "Z3754","Z23")
-  
-
 
 rs = apply(NIS, 1, function(r) any(r %in% list.vals))
 
@@ -140,15 +138,44 @@ View(head(NIS))
 NIS = NIS[,-(10:39)]
 
 NIS$HOSP_NIS.x
+
+NIS$SEVERITY = ifelse(NIS$APRDRG_Severity>=2,1,0)
+
+set.seed(1)
+NIS_short = as.data.frame(NIS[1,])
+for(i in 1:3){
+  for(j in 1:3){
+    for(k in 1:3){
+      dataset_tmp = NIS$HOSP_NIS.x[which(NIS$Control==i & NIS$LocTeach ==j & NIS$Bedize ==k)]
+      #print(i)
+      #print(j)
+      #print(k)
+      store_hospital = dataset_tmp[sample(length(dataset_tmp), size=6, replace =F)]
+      #In  total we sampled 405 hospitals
+      new_frame = NIS[which(NIS$HOSP_NIS.x %in% store_hospital),]
+      new_frame2 = new_frame[sample(nrow(new_frame), size = round(0.33*nrow(new_frame)), replace = F),]
+      NIS_short = rbind(NIS_short,new_frame2)
+      #print('````````````````````````')
+    }
+  }
+}
+
+
+NIS_short = NIS_short[-1,]
+rm(list = c("NIS"))
 ```
 
 ```{r}
+library(dplyr)
+library(magrittr)
+
 library(lme4)
 #install.packages("MCMCglmm")
 library(MCMCglmm)
 #NIS = as.matrix(NIS)
-NIS$HOSP_NIS.x = as.factor(NIS$HOSP_NIS.x)
-m <- lmer(APRDRG_Severity ~ as.factor(Census_Division) + Bedize + as.factor(LocTeach) + as.factor(Control) + 1|HOSP_NIS.x ,data =NIS)
+NIS_short$HOSP_NIS.x = as.factor(NIS_short$HOSP_NIS.x)
+
+m <- glmer(SEVERITY ~ (1 + AGE | Census_Division/HOSP_NIS.x) + AWEEKEND + (Control |Census_Division) + (LocTeach |Census_Division) + (Bedize |Census_Division) + (TOTAL_DISC|Census_Division), data =NIS_short,family = binomial(link = "logit"))
 
 summary(m)
 ```
