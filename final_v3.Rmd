@@ -1,0 +1,183 @@
+---
+title: "BiostatFinal"
+author: "Tiankang Xie"
+date: "May 18, 2019"
+output: html_document
+---
+
+https://www.qualityindicators.ahrq.gov/
+library(readr)
+
+
+#Making the first object that will hold the CORE file information:
+```{r}
+setwd("F:\\SP2019\\Biostat2\\Final")
+library(readr)
+info_NIS <- read_fwf('https://www.hcup-us.ahrq.gov/db/nation/nis/tools/stats/FileSpecifications_NIS_2016_Core.TXT', 
+                fwf_positions(start = c(1, 5, 10, 37, 41, 71, 75, 79, 81, 86), 
+                              end = c(3, 8, 35, 39, 69, 73, 77, 79, 84, 185)),  #use NA here for ragged (file ends abruptly when NA in last column)
+                skip = 20) #skip = lines to skip till beggining reading the file
+ 
+
+head(info_NIS)
+
+
+NIS <- read_fwf('NIS_2016_Core.ASC', fwf_positions(start = info_NIS$X6, end = info_NIS$X7, col_names = info_NIS$X5)) 
+```
+
+
+
+
+```{r}
+#Making the first object that will hold the HOSPITAL file information:
+
+info_HOSPITAL <- read_fwf('https://www.hcup-us.ahrq.gov/db/nation/nis/tools/stats/FileSpecifications_NIS_2016_Hospital.TXT', 
+                fwf_positions(start = c(1, 5, 10, 37, 41, 71, 75, 79, 81, 86), 
+                              end = c(3, 8, 35, 39, 69, 73, 77, 79, 84, 185)),  #use NA here for ragged (file ends abruptly when NA in last column)
+                skip = 20) #skip = lines to skip till beggining reading the file
+
+
+head(info_HOSPITAL)
+```
+
+```{r}
+# Loading the HOSPITAL dataset:
+HOSPITAL <- read_fwf('NIS_2016_Hospital.ASC', fwf_positions(start = info_HOSPITAL$X6, end = info_HOSPITAL$X7, col_names = info_HOSPITAL$X5))   
+
+head(HOSPITAL)
+```
+
+
+```{r}
+#Making the first object that will hold the SEVERITY file information:
+
+info_SEVERITY <- read_fwf('https://www.hcup-us.ahrq.gov/db/nation/nis/tools/stats/FileSpecifications_NIS_2016_Severity.TXT', 
+                fwf_positions(start = c(1, 5, 10, 37, 41, 71, 75, 79, 81, 86), 
+                              end = c(3, 8, 35, 39, 69, 73, 77, 79, 84, 185)),  #use NA here for ragged (file ends abruptly when NA in last column)
+                skip = 20) #skip = lines to skip till beggining reading the file
+
+
+info_SEVERITY
+
+
+```
+
+```{r}
+# Loading the SEVERITY dataset:
+SEVERITY <- read_fwf('NIS_2016_Severity.ASC', fwf_positions(start = info_SEVERITY$X6, end = info_SEVERITY$X7, col_names = info_SEVERITY$X5))   
+
+head(SEVERITY)
+
+NIS$I10_PR1
+```
+
+AGE, AWEEKEND, DISPUNIFORM, DQTR, DRG, ELECTIVE,FEMALE,HCUP_ED,HOSP_NIS,I10_NDX,I10_NPR, ..., KEY_NIS, LOS,NIS_STRATUM,PAY1,PL_NCHS,RACE,TOTCHG,TRAN_IN.
+```{r}
+#Dropping unnecessary variables in the core file:
+
+keep <- names(NIS) %in% c("AGE", "AWEEKEND", "DISPUNIFORM", "DQTR", "DRG", "ELECTIVE", "FEMALE", "HCUP_ED", "HOSP_NIS", "I10_DX1", "I10_DX2", "I10_DX3", "I10_DX4", "I10_DX5", "I10_DX6", "I10_DX7", "I10_DX8", "I10_DX9", "I10_DX10", "I10_DX11", "I10_DX12", "I10_DX13", "I10_DX14", "I10_DX15", "I10_DX16", "I10_DX17", "I10_DX18", "I10_DX19", "I10_DX20", "I10_DX21", "I10_DX22", "I10_DX23", "I10_DX24", "I10_DX25", "I10_DX26", "I10_DX27", "I10_DX28", "I10_DX29", "I10_DX30", "I10_NDX", "I10_NPR", "I10_PR1", "I10_PR2", "I10_PR3", "I10_PR4", "I10_PR5", "I10_PR6", "I10_PR7", "I10_PR8", "I10_PR9", "I10_PR10", "I10_PR11", "I10_PR12", "I10_PR13", "I10_PR14", "I10_PR15", "KEY_NIS", "LOS", "PAY1", "PL_NCHS", "RACE", "TOTCHG", "TRAN_IN", "YEAR", "ZIPINC_QRTL","NIS_STRATUM" ) 
+NIS <- NIS[keep]
+```
+
+```{r}
+#Dropping unnecessary variables in the hospital file:
+keeph <- names(HOSPITAL) %in% c("HOSP_NIS", "TOTAL_DISC")
+HOSPITAL <- HOSPITAL[keeph]
+```
+
+
+```{r}
+keeps <- names(SEVERITY) %in% c("HOSP_NIS", "APRDRG_Severity", "APRDRG_Risk_Mortality", "KEY_NIS")
+SEVERITY <- SEVERITY[keeps]
+```
+
+
+```{r}
+library(dplyr)
+
+#Merging the hospital file:
+NIS <- inner_join(NIS, HOSPITAL, by = "HOSP_NIS")
+
+```
+
+```{r}
+#Merging the severity file:
+
+NIS <- inner_join(NIS, SEVERITY, by = "KEY_NIS")
+
+```
+
+
+```{r}
+NIS[,"Census_Division"] <- NIS[,"NIS_STRATUM"] %/% 1000
+NIS[,"Control"] <- (NIS[,"NIS_STRATUM"] %% 1000) %/% 100
+NIS[,"LocTeach"] <- ((NIS[,"NIS_STRATUM"] %% 1000) %% 100) %/% 10
+NIS[,"Bedize"] <- (((NIS[,"NIS_STRATUM"] %% 1000) %% 100) %% 10) %/% 1
+
+#sss = NIS2[,c("NIS_STRATUM","Census_Division","Control")]
+
+rm(list = c("HOSPITAL","SEVERITY"))
+NIS = NIS[NIS$FEMALE==1,]
+
+
+```
+
+
+
+
+```{r}
+
+list.vals = c("Z370","Z3759", "Z371", "Z3760",  "Z372", "Z3761" , "Z373" , "Z3762" , "Z374" , "Z3763" , "Z3764" , "Z3751" , "Z3769" , "Z3752" , "Z377" , "Z3753" , "Z379", "Z3754","Z23")
+
+rs = apply(NIS, 1, function(r) any(r %in% list.vals))
+
+NIS = NIS[rs,]
+
+
+NIS = NIS[,-(10:39)]
+
+NIS$HOSP_NIS.x
+
+NIS$SEVERITY = ifelse(NIS$APRDRG_Severity>=2,1,0)
+
+set.seed(1)
+NIS_short = as.data.frame(NIS[1,])
+for(i in 1:3){
+  for(j in 1:3){
+    for(k in 1:3){
+      dataset_tmp = NIS$HOSP_NIS.x[which(NIS$Control==i & NIS$LocTeach ==j & NIS$Bedize ==k)]
+      #print(i)
+      #print(j)
+      #print(k)
+      store_hospital = dataset_tmp[sample(length(dataset_tmp), size=4, replace =F)]
+      #In  total we sampled 405 hospitals
+      new_frame = NIS[which(NIS$HOSP_NIS.x %in% store_hospital),]
+      new_frame2 = new_frame[sample(nrow(new_frame), size = round(0.2*nrow(new_frame)), replace = F),]
+      NIS_short = rbind(NIS_short,new_frame2)
+      #print('````````````````````````')
+    }
+  }
+}
+
+
+NIS_short = NIS_short[-1,]
+rm(list = c("NIS"))
+```
+
+```{r}
+library(dplyr)
+library(magrittr)
+
+library(lme4)
+#install.packages("MCMCglmm")
+library(MCMCglmm)
+#NIS = as.matrix(NIS)
+NIS_short$HOSP_NIS.x = as.factor(NIS_short$HOSP_NIS.x)
+
+m <- glmer(SEVERITY ~ Age + (1 | Census_Division/HOSP_NIS.x) + AWEEKEND + HOSP_NIS.x + Control + LocTeach + Bedize + TOTAL_DISC, data =NIS_short,family = binomial(link = "logit"))
+
+summary(m)
+coef(m)
+save(m, file = "F:\\SP2019\\Biostat2\\Final\\mval1.Rdata")
+
+```
