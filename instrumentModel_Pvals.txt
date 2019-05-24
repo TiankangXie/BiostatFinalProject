@@ -1,0 +1,49 @@
+Linear mixed model fit by REML. t-tests use Satterthwaite's method ['lmerModLmerTest']
+Formula: rate ~ AGE + (1 | HOSP_NIS.x) + as.factor(AWEEKEND) + as.factor(Control) +  
+    as.factor(LocTeach) + as.factor(Bedize) + TOTAL_DISC + as.factor(RACE)
+   Data: NIS_short_insdel
+
+REML criterion at convergence: -573453.1
+
+Scaled residuals: 
+       Min         1Q     Median         3Q        Max 
+-5.670e-06 -2.880e-07 -3.800e-08  2.030e-07  3.665e-05 
+
+Random effects:
+ Groups     Name        Variance  Std.Dev. 
+ HOSP_NIS.x (Intercept) 1.922e-03 4.384e-02
+ Residual               4.758e-15 6.898e-08
+Number of obs: 20459, groups:  HOSP_NIS.x, 1486
+
+Fixed effects:
+                       Estimate Std. Error         df t value Pr(>|t|)   
+(Intercept)          -2.049e-02  3.860e-03  2.933e-01  -5.309  0.42976   
+AGE                   3.287e-15  9.065e-11  3.834e+00   0.000  0.99997   
+as.factor(AWEEKEND)1  8.971e-15  1.225e-09  3.834e+00   0.000  0.99999   
+as.factor(Control)2   2.417e-02  3.058e-03  1.453e+00   7.903  0.03617 * 
+as.factor(Control)3   2.163e-02  3.605e-03  3.301e+00   6.001  0.00702 **
+as.factor(LocTeach)2  6.863e-02  3.425e-03  5.435e-01  20.037  0.12439   
+as.factor(LocTeach)3  8.808e-02  5.088e-03  1.222e-01  17.310  0.57358   
+as.factor(Bedize)2    4.964e-02  3.221e-03  9.466e-01  15.412  0.04730 * 
+as.factor(Bedize)3    8.527e-02  4.430e-03  1.603e-01  19.248  0.48546   
+TOTAL_DISC           -6.555e-06  1.120e-06  6.996e-02  -5.850  0.76856   
+as.factor(RACE)-8     1.909e-13  7.096e-08  3.834e+00   0.000  1.00000   
+as.factor(RACE)1      2.037e-13  3.757e-09  3.834e+00   0.000  0.99996   
+as.factor(RACE)2      2.022e-13  3.996e-09  3.834e+00   0.000  0.99996   
+as.factor(RACE)3      2.063e-13  3.993e-09  3.834e+00   0.000  0.99996   
+as.factor(RACE)4      1.991e-13  4.104e-09  3.834e+00   0.000  0.99996   
+as.factor(RACE)5      2.180e-13  8.309e-09  3.834e+00   0.000  0.99998   
+as.factor(RACE)6      1.984e-13  4.510e-09  3.834e+00   0.000  0.99997   
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Correlation matrix not shown by default, as p = 17 > 12.
+Use print(x, correlation=TRUE)  or
+    vcov(x)        if you need it
+
+fit warnings:
+Some predictor variables are on very different scales: consider rescaling
+convergence code: 0
+Model failed to converge with max|grad| = 5.2141 (tol = 0.002, component 1)
+Model is nearly unidentifiable: very large eigenvalue
+ - Rescale variables?
